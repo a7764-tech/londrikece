@@ -29,6 +29,7 @@ Buka `http://localhost:3000` dan masuk melalui halaman login. Sesi kasir berlaku
 - Halaman khusus `/cek-status` untuk pelanggan memasukkan kode enam digit secara manual.
 - Halaman `/status/[kode]` memperbarui status pengerjaan otomatis.
 - Login kasir dengan cookie sesi `HttpOnly`, `SameSite`, dan masa berlaku terbatas.
+- Validasi lint dijalankan sebagai bagian dari build deployment.
 
 ## Konfigurasi tarif
 
@@ -42,14 +43,17 @@ Saat berjalan lokal tanpa `DATABASE_URL`, data disimpan pada file JSON di folder
 
 1. Push project ke repository GitHub.
 2. Buat database PostgreSQL di Neon, lalu salin connection string pooled (`DATABASE_URL`).
-3. Jika ingin membawa data lokal, buat cadangan folder `data/`, masukkan `DATABASE_URL` Neon ke `.env.local`, lalu jalankan `npm run db:import-local`. Skrip hanya mengimpor ke database kosong dan membatalkan proses jika database sudah berisi data.
+3. Jika ingin membawa data lokal, buat cadangan folder `data/`, masukkan `DATABASE_URL` Neon ke `.env.local`, lalu jalankan `npm run db:import-local`. Skrip memeriksa ID/kode duplikat, hanya mengimpor ke database kosong, dan membatalkan proses jika database sudah berisi data.
 4. Import repository tersebut di [Vercel](https://vercel.com/new).
 5. Tambahkan variabel lingkungan untuk semua environment yang diperlukan:
    - `DATABASE_URL` — connection string Neon.
    - `CASHIER_USERNAME` — username kasir.
    - `CASHIER_PASSWORD` — password kasir yang kuat.
    - `AUTH_SECRET` — secret acak minimal 32 karakter.
-6. Deploy. Setelah deploy, uji login kasir, buat transaksi, lalu buka domain publik `/cek-status` untuk memastikan alur pelanggan dapat diakses.
+6. Deploy. Build otomatis menjalankan ESLint dan `next build`; target Node.js minimal 20.9.
+7. Setelah deploy, uji login kasir, buat transaksi, lalu buka domain publik `/cek-status` untuk memastikan alur pelanggan dapat diakses.
+
+Vercel otomatis mendeteksi Next.js; gunakan root directory project ini, perintah build `npm run build`, dan install command `npm ci`. Jangan mengunggah `.env.local` atau folder `data/`; file rahasia dan data lokal dikecualikan dari deployment.
 
 Contoh membuat `AUTH_SECRET`:
 

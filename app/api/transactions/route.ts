@@ -7,7 +7,10 @@ import { isCashierAuthenticated, unauthorizedCashierResponse } from "@/lib/auth"
 export async function GET(request: Request) {
   if (!isCashierAuthenticated(request)) return unauthorizedCashierResponse();
   const transactions = await getTransactions();
-  return Response.json({ transactions: transactions.sort((a, b) => b.createdAt.localeCompare(a.createdAt)) });
+  return Response.json(
+    { transactions: transactions.sort((a, b) => b.createdAt.localeCompare(a.createdAt)) },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }
 
 export async function POST(request: Request) {
@@ -23,7 +26,7 @@ export async function POST(request: Request) {
   let transaction: Transaction | undefined;
   for (let attempt = 0; attempt < 10; attempt += 1) {
     const candidate: Transaction = {
-      id: `TRX-${new Date().toISOString().slice(2, 10).replaceAll("-", "")}-${crypto.randomUUID().slice(0, 4).toUpperCase()}`,
+      id: `TRX-${new Date().toISOString().slice(2, 10).replaceAll("-", "")}-${crypto.randomUUID().slice(0, 12).toUpperCase()}`,
       trackingCode: String(randomInt(100_000, 1_000_000)),
       customerName, phone, notes, serviceId, serviceName: service.name, weight, express,
       unitRate: service.pricePerKg, expressFee: express ? tariffs.expressFee : 0,
@@ -36,5 +39,5 @@ export async function POST(request: Request) {
     }
   }
   if (!transaction) return Response.json({ message: "Kode pelacakan unik belum dapat dibuat. Silakan coba lagi." }, { status: 503 });
-  return Response.json({ transaction }, { status: 201 });
+  return Response.json({ transaction }, { status: 201, headers: { "Cache-Control": "no-store" } });
 }

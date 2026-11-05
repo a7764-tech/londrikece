@@ -15,10 +15,21 @@ const transactions = JSON.parse(await readFile(path.join(projectRoot, "data", "t
 const tariffs = JSON.parse(await readFile(path.join(projectRoot, "data", "tariffs.json"), "utf8"));
 
 if (!Array.isArray(transactions)) throw new Error("data/transactions.json harus berisi daftar transaksi.");
+const transactionIds = new Set();
+const trackingCodes = new Set();
 for (const transaction of transactions) {
   if (!transaction || typeof transaction.id !== "string" || typeof transaction.createdAt !== "string") {
     throw new Error("Ada transaksi dengan format yang tidak valid. Data belum diimpor.");
   }
+  if (transactionIds.has(transaction.id)) throw new Error("Ada ID transaksi duplikat. Data belum diimpor.");
+  if (transaction.trackingCode && trackingCodes.has(transaction.trackingCode)) {
+    throw new Error("Ada kode pelacakan duplikat. Data belum diimpor.");
+  }
+  transactionIds.add(transaction.id);
+  if (transaction.trackingCode) trackingCodes.add(transaction.trackingCode);
+}
+if (!tariffs || !Array.isArray(tariffs.services) || !Number.isInteger(tariffs.expressFee)) {
+  throw new Error("data/tariffs.json tidak berisi konfigurasi tarif yang valid. Data belum diimpor.");
 }
 
 await sql`

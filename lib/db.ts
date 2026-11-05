@@ -104,14 +104,13 @@ export async function insertTransaction(transaction: Transaction): Promise<boole
     const rows = await sql`
       INSERT INTO laundry_transactions (id, tracking_code, created_at, data)
       VALUES (${transaction.id}, ${transaction.trackingCode ?? null}, ${transaction.createdAt}, ${JSON.stringify(transaction)}::jsonb)
-      ON CONFLICT (tracking_code) DO NOTHING
+      ON CONFLICT DO NOTHING
       RETURNING id
     `;
     return rows.length > 0;
   }
   const items = await getTransactions();
-  if (items.some((item) => item.trackingCode === transaction.trackingCode)) return false;
-  if (items.some((item) => item.id === transaction.id)) throw new Error("ID transaksi sudah digunakan.");
+  if (items.some((item) => item.trackingCode === transaction.trackingCode || item.id === transaction.id)) return false;
   items.unshift(transaction);
   await writeFile(transactionsPath, JSON.stringify(items, null, 2), "utf8");
   return true;

@@ -4,7 +4,7 @@ import { isCashierAuthenticated, unauthorizedCashierResponse } from "@/lib/auth"
 
 export async function GET(request: Request) {
   if (!isCashierAuthenticated(request)) return unauthorizedCashierResponse();
-  return Response.json({ tariffs: await getTariffs(), provisional: true });
+  return Response.json({ tariffs: await getTariffs(), provisional: true }, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function PUT(request: Request) {
@@ -32,5 +32,5 @@ export async function PUT(request: Request) {
     expressFee: Number(value.expressFee),
   };
   await saveTariffs(tariffs);
-  return Response.json({ tariffs });
+  return Response.json({ tariffs }, { headers: { "Cache-Control": "no-store" } });
 }

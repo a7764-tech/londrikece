@@ -18,5 +18,5 @@ export async function PATCH(request: Request, context: RouteContext<"/api/transa
   }
   else return Response.json({ message: "Perubahan status tidak diizinkan." }, { status: 400 });
   await saveTransaction(transaction);
-  return Response.json({ transaction });
+  return Response.json({ transaction }, { headers: { "Cache-Control": "no-store" } });
 }
